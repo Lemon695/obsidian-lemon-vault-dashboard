@@ -11,6 +11,10 @@ const typedOnlyRules = {
 	'obsidianmd/prefer-instanceof': 'off',
 } as const;
 
+const sourceCompatibilityRules = {
+	'obsidianmd/no-unsupported-api': 'error',
+} as const;
+
 export default tseslint.config(
 	{
 		languageOptions: {
@@ -27,6 +31,10 @@ export default tseslint.config(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		files: ['src/**/*.ts'],
+		rules: sourceCompatibilityRules,
+	},
 	{
 		files: ['**/*.json'],
 		rules: typedOnlyRules,

@@ -120,8 +120,15 @@ export function migrateSettings(loaded: unknown): PluginSettings {
 
 // ── Shared contracts ───────────────────────────────────────────────────────
 
-/** Plugin interface used by SettingTab / View to avoid circular imports with main */
-export type VaultDashboardPluginLike = Plugin & {
+/**
+ * Plugin interface used by SettingTab / View to avoid circular imports with main.
+ *
+ * Intentionally omit Obsidian's base `Plugin.settings` property, which was added
+ * in Obsidian 1.13.0. The plugin still declares `minAppVersion: 1.12.7`, so
+ * helper surfaces should resolve `settings` to our own persisted shape instead
+ * of the newer core API symbol.
+ */
+export type VaultDashboardPluginLike = Omit<Plugin, 'settings'> & {
 	settings: PluginSettings;
 	saveSettings(): Promise<void>;
 	moduleManager: { getAll(): PluginModule[] };
