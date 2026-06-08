@@ -50,7 +50,7 @@ type ElectronShell = {
 };
 
 function getElectronShell(): ElectronShell | null {
-	const runtime = globalThis as typeof globalThis & {
+	const runtime = window as Window & {
 		require?: (module: string) => unknown;
 	};
 	const requireFn: ((module: string) => unknown) | undefined = runtime.require;
