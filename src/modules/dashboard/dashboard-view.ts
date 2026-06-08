@@ -44,6 +44,25 @@ import { createIcon } from './renderer/icon';
 
 export const VAULT_DASHBOARD_VIEW = 'vault-dashboard-view';
 
+type ElectronShell = {
+	openPath: (path: string) => Promise<string>;
+	showItemInFolder: (path: string) => void;
+};
+
+function getElectronShell(): ElectronShell | null {
+	const runtime = globalThis as typeof globalThis & {
+		require?: (module: string) => unknown;
+	};
+	const requireFn: ((module: string) => unknown) | undefined = runtime.require;
+	if (!requireFn) return null;
+	const electronModule = requireFn('electron');
+	if (typeof electronModule !== 'object' || electronModule === null || !('shell' in electronModule)) {
+		return null;
+	}
+	const { shell } = electronModule as { shell?: ElectronShell };
+	return shell ?? null;
+}
+
 export class VaultDashboardView extends ItemView {
 	private fileIndex: FileSizeEntry[] = [];
 	private delegationBound = false;
@@ -426,7 +445,7 @@ export class VaultDashboardView extends ItemView {
 		this.treemapObserver?.disconnect();
 		this.treemapObserver = new ResizeObserver(() => {
 			if (this.treemapRafId !== null) cancelAnimationFrame(this.treemapRafId);
-			this.treemapRafId = requestAnimationFrame(() => {
+			this.treemapRafId = window.requestAnimationFrame(() => {
 				this.treemapRafId = null;
 				onResize();
 			});
@@ -487,8 +506,8 @@ export class VaultDashboardView extends ItemView {
 			return;
 		}
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef
-			const { shell } = require('electron') as { shell: { openPath: (p: string) => Promise<string> } };
+			const shell = getElectronShell();
+			if (!shell) throw new Error('Electron shell unavailable');
 			const error = await shell.openPath(path);
 			if (error) new Notice(error);
 		} catch {
@@ -516,8 +535,8 @@ export class VaultDashboardView extends ItemView {
 			return;
 		}
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef
-			const { shell } = require('electron') as { shell: { showItemInFolder: (p: string) => void } };
+			const shell = getElectronShell();
+			if (!shell) throw new Error('Electron shell unavailable');
 			shell.showItemInFolder(absolute);
 		} catch {
 			new Notice(L.noticeRevealFailed);

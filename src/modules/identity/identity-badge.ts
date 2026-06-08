@@ -41,44 +41,48 @@ export class IdentityBadge extends Component {
 		this.syncLayout();
 	}
 
+	private getDoc(): Document {
+		return this.plugin.app.workspace.containerEl.ownerDocument;
+	}
+
 	private render(): void {
 		const settings = this.plugin.settings.identity;
+		const doc = this.getDoc();
 
 		if (!settings.showBadge) {
 			this.removeBadge();
 			return;
 		}
 
-		if (!this.badgeEl) {
-			this.badgeEl = document.body.createDiv('vault-identity-badge');
-			this.badgeEl.onclick = () => { void this.plugin.activateView(); };
-		}
+		const badgeEl = this.badgeEl ?? doc.body.createDiv('vault-identity-badge');
+		this.badgeEl = badgeEl;
+		badgeEl.onclick = () => { void this.plugin.activateView(); };
 
 		const L = t(identityModuleI18n);
 		const vaultName = settings.customText || this.plugin.app.vault.getName();
 		const initial = vaultName.charAt(0).toUpperCase();
 
-		this.badgeEl.empty();
+		badgeEl.empty();
 
 		// Avatar: colored rounded square with vault initial
-		const avatarEl = this.badgeEl.createDiv('vault-identity-avatar');
+		const avatarEl = badgeEl.createDiv('vault-identity-avatar');
 		avatarEl.setText(initial);
 
 		// Text block: vault name + sub-label
-		const infoEl = this.badgeEl.createDiv('vault-identity-info');
+		const infoEl = badgeEl.createDiv('vault-identity-info');
 		infoEl.createDiv('vault-identity-name').setText(vaultName);
 		infoEl.createDiv('vault-identity-sub').setText(L.badgeSub);
 
 		// Chevron — appears on hover via CSS
-		const actionEl = this.badgeEl.createDiv('vault-identity-action');
+		const actionEl = badgeEl.createDiv('vault-identity-action');
 		setIcon(actionEl, 'chevron-right');
 
 		// CSS custom properties
-		this.badgeEl.style.setProperty('--badge-opacity', settings.opacity.toString());
+		badgeEl.style.setProperty('--badge-opacity', settings.opacity.toString());
 		if (settings.badgeColor) {
-			this.badgeEl.style.setProperty('--badge-color', settings.badgeColor);
+			badgeEl.style.setProperty('--badge-color', settings.badgeColor);
 		} else {
-			this.badgeEl.style.removeProperty('--badge-color');
+			badgeEl.style.removeProperty('--badge-color');
 		}
 
 		this.syncLayout();
@@ -87,10 +91,11 @@ export class IdentityBadge extends Component {
 	private setupLayoutObserver(): void {
 		this.layoutObserver?.disconnect();
 		if (!window.ResizeObserver) return;
+		const doc = this.getDoc();
 
 		this.layoutObserver = new ResizeObserver(() => { this.syncLayout(); });
-		const sidebarEl = document.querySelector<HTMLElement>(RIGHT_SIDEBAR_SELECTOR);
-		const statusBarEl = document.querySelector<HTMLElement>(STATUS_BAR_SELECTOR);
+		const sidebarEl = doc.querySelector<HTMLElement>(RIGHT_SIDEBAR_SELECTOR);
+		const statusBarEl = doc.querySelector<HTMLElement>(STATUS_BAR_SELECTOR);
 
 		if (sidebarEl) {
 			this.layoutObserver.observe(sidebarEl);
@@ -103,8 +108,9 @@ export class IdentityBadge extends Component {
 
 	private syncLayout(): void {
 		if (!this.badgeEl) return;
+		const doc = this.getDoc();
 
-		const sidebarEl = document.querySelector<HTMLElement>(RIGHT_SIDEBAR_SELECTOR);
+		const sidebarEl = doc.querySelector<HTMLElement>(RIGHT_SIDEBAR_SELECTOR);
 		const width = sidebarEl?.offsetWidth ?? 0;
 
 		if (width <= 0) {
@@ -117,7 +123,8 @@ export class IdentityBadge extends Component {
 	}
 
 	private getBottomOffset(): number {
-		const statusBarEl = document.querySelector<HTMLElement>(STATUS_BAR_SELECTOR);
+		const doc = this.getDoc();
+		const statusBarEl = doc.querySelector<HTMLElement>(STATUS_BAR_SELECTOR);
 		if (statusBarEl) {
 			const rect = statusBarEl.getBoundingClientRect();
 			const occupiedHeight = window.innerHeight - rect.top;
@@ -126,7 +133,7 @@ export class IdentityBadge extends Component {
 			}
 		}
 
-		const cssHeight = getComputedStyle(document.body)
+		const cssHeight = getComputedStyle(doc.body)
 			.getPropertyValue('--status-bar-height')
 			.trim();
 		const parsedHeight = Number.parseFloat(cssHeight);

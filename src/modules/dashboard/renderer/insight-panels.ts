@@ -13,6 +13,7 @@ export function renderGrowthPanel(
 	growth: DashboardGrowthPoint[],
 	L: DashboardViewI18n
 ): void {
+	const doc = parent.ownerDocument;
 	const card = createCard(parent, 'vault-dashboard-panel vault-dashboard-growth-panel');
 	const first = growth[0]?.size ?? 0;
 	const last = growth[growth.length - 1]?.size ?? 0;
@@ -22,7 +23,7 @@ export function renderGrowthPanel(
 	const metrics = card.createDiv({ cls: 'vault-dashboard-panel-inline-metrics' });
 	metrics.createDiv({ text: `${delta >= 0 ? '+' : ''}${delta.toFixed(1)} MB`, cls: 'vault-dashboard-panel-inline-value' });
 	metrics.createDiv({ text: `${delta >= 0 ? '+' : ''}${pct.toFixed(1)}%`, cls: `vault-dashboard-panel-inline-badge ${delta >= 0 ? 'is-positive' : 'is-negative'}` });
-	card.appendChild(createAreaChart(growth));
+	card.appendChild(createAreaChart(growth, doc));
 }
 
 export function renderActivityPanel(
@@ -36,12 +37,13 @@ export function renderActivityPanel(
 	},
 	L: DashboardViewI18n
 ): void {
+	const doc = parent.ownerDocument;
 	const card = createCard(parent, 'vault-dashboard-panel vault-dashboard-activity-panel');
 	createSectionHeader(card, L.activityTitle, L.activityHint);
 	const meta = card.createDiv({ cls: 'vault-dashboard-activity-meta' });
 	meta.setText(L.activityAverageEdits(stats.lastSevenDayAverageEdits));
 	const body = card.createDiv({ cls: 'vault-dashboard-activity-body' });
-	body.appendChild(createHeatmap(activity, L));
+	body.appendChild(createHeatmap(activity, L, doc));
 	const aside = body.createDiv({ cls: 'vault-dashboard-activity-aside' });
 	createMiniStat(aside, L.activityEditedToday, String(stats.lastDayEditedTotal));
 	createMiniStat(aside, L.activityCreatedToday, String(stats.lastDayCreatedTotal));
@@ -88,7 +90,7 @@ function createMiniStat(parent: HTMLElement, label: string, value: string): void
 	card.createSpan({ text: value, cls: 'vault-dashboard-mini-stat-value' });
 }
 
-function createAreaChart(points: DashboardGrowthPoint[]): SVGSVGElement {
+function createAreaChart(points: DashboardGrowthPoint[], doc: Document): SVGSVGElement {
 	const width = 720;
 	const height = 190;
 	const padLeft = 40;
@@ -98,7 +100,7 @@ function createAreaChart(points: DashboardGrowthPoint[]): SVGSVGElement {
 	const values = points.map((item) => item.size);
 	const min = Math.min(...values, 0);
 	const max = Math.max(...values, 1);
-	const svg = createSvg('svg', { viewBox: `0 0 ${width} ${height}`, class: 'vault-dashboard-svg' });
+	const svg = createSvg(doc, 'svg', { viewBox: `0 0 ${width} ${height}`, class: 'vault-dashboard-svg' });
 	const chartWidth = width - padLeft - padRight;
 	const chartHeight = height - padTop - padBottom;
 	const xFor = (index: number) => padLeft + (index / Math.max(1, points.length - 1)) * chartWidth;
@@ -106,27 +108,27 @@ function createAreaChart(points: DashboardGrowthPoint[]): SVGSVGElement {
 	for (let i = 0; i <= 4; i++) {
 		const value = min + ((max - min) / 4) * i;
 		const y = yFor(value);
-		svg.appendChild(createSvg('line', { x1: String(padLeft), x2: String(width - padRight), y1: String(y), y2: String(y), class: 'vault-dashboard-chart-grid' }));
-		const label = createSvg('text', { x: String(padLeft - 8), y: String(y + 4), class: 'vault-dashboard-chart-axis' });
+		svg.appendChild(createSvg(doc, 'line', { x1: String(padLeft), x2: String(width - padRight), y1: String(y), y2: String(y), class: 'vault-dashboard-chart-grid' }));
+		const label = createSvg(doc, 'text', { x: String(padLeft - 8), y: String(y + 4), class: 'vault-dashboard-chart-axis' });
 		label.textContent = String(Math.round(value));
 		svg.appendChild(label);
 	}
 	const line = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${xFor(index)} ${yFor(point.size)}`).join(' ');
 	const area = `${line} L ${xFor(points.length - 1)} ${height - padBottom} L ${padLeft} ${height - padBottom} Z`;
-	const defs = createSvg('defs');
-	const gradient = createSvg('linearGradient', { id: 'vault-dashboard-growth-fill', x1: '0', x2: '0', y1: '0', y2: '1' });
-	gradient.appendChild(createSvg('stop', { offset: '0%', stopColor: 'var(--interactive-accent)', stopOpacity: '0.28' }));
-	gradient.appendChild(createSvg('stop', { offset: '100%', stopColor: 'var(--interactive-accent)', stopOpacity: '0' }));
+	const defs = createSvg(doc, 'defs');
+	const gradient = createSvg(doc, 'linearGradient', { id: 'vault-dashboard-growth-fill', x1: '0', x2: '0', y1: '0', y2: '1' });
+	gradient.appendChild(createSvg(doc, 'stop', { offset: '0%', stopColor: 'var(--interactive-accent)', stopOpacity: '0.28' }));
+	gradient.appendChild(createSvg(doc, 'stop', { offset: '100%', stopColor: 'var(--interactive-accent)', stopOpacity: '0' }));
 	defs.appendChild(gradient);
 	svg.appendChild(defs);
-	svg.appendChild(createSvg('path', { d: area, fill: 'url(#vault-dashboard-growth-fill)' }));
-	svg.appendChild(createSvg('path', { d: line, class: 'vault-dashboard-chart-line' }));
+	svg.appendChild(createSvg(doc, 'path', { d: area, fill: 'url(#vault-dashboard-growth-fill)' }));
+	svg.appendChild(createSvg(doc, 'path', { d: line, class: 'vault-dashboard-chart-line' }));
 	points.forEach((point, index) => {
 		const x = xFor(index);
 		const y = yFor(point.size);
-		svg.appendChild(createSvg('circle', { cx: String(x), cy: String(y), r: '2.5', class: 'vault-dashboard-chart-dot' }));
+		svg.appendChild(createSvg(doc, 'circle', { cx: String(x), cy: String(y), r: '2.5', class: 'vault-dashboard-chart-dot' }));
 		if (index === 0 || index === points.length - 1 || index % 3 === 0) {
-			const label = createSvg('text', { x: String(x), y: String(height - 8), textAnchor: 'middle', class: 'vault-dashboard-chart-axis' });
+			const label = createSvg(doc, 'text', { x: String(x), y: String(height - 8), textAnchor: 'middle', class: 'vault-dashboard-chart-axis' });
 			label.textContent = point.monthKey.slice(5);
 			svg.appendChild(label);
 		}
@@ -134,36 +136,36 @@ function createAreaChart(points: DashboardGrowthPoint[]): SVGSVGElement {
 	return svg;
 }
 
-function createHeatmap(activity: DashboardActivityDay[], L: DashboardViewI18n): HTMLElement {
-	const grid = document.createElement('div');
+function createHeatmap(activity: DashboardActivityDay[], L: DashboardViewI18n, doc: Document): HTMLElement {
+	const grid = doc.createElement('div');
 	grid.className = 'vault-dashboard-heatmap';
 	const max = Math.max(...activity.map((item) => item.edited), 1);
 	for (const day of activity) {
-		const cell = document.createElement('div');
+		const cell = doc.createElement('div');
 		cell.className = 'vault-dashboard-heatmap-cell';
 		cell.style.setProperty('--vd-heat', (day.edited / max).toFixed(2));
 		cell.setAttribute('aria-label', `${day.dayKey}: ${day.edited}`);
 		grid.appendChild(cell);
 	}
-	const legend = document.createElement('div');
+	const legend = doc.createElement('div');
 	legend.className = 'vault-dashboard-heatmap-legend';
-	legend.append(document.createTextNode(L.activityLow));
+	legend.append(doc.createTextNode(L.activityLow));
 	for (const step of [0.15, 0.35, 0.55, 0.75, 0.95]) {
-		const swatch = document.createElement('span');
+		const swatch = doc.createElement('span');
 		swatch.style.setProperty('--vd-heat', step.toFixed(2));
 		swatch.className = 'vault-dashboard-heatmap-cell';
 		legend.appendChild(swatch);
 	}
-	legend.append(document.createTextNode(L.activityHigh));
-	const wrap = document.createElement('div');
+	legend.append(doc.createTextNode(L.activityHigh));
+	const wrap = doc.createElement('div');
 	wrap.className = 'vault-dashboard-heatmap-wrap';
 	wrap.appendChild(grid);
 	wrap.appendChild(legend);
 	return wrap;
 }
 
-function createSvg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string> = {}): SVGElementTagNameMap[K] {
-	const el = document.createElementNS(SVG_NS, tag);
+function createSvg<K extends keyof SVGElementTagNameMap>(doc: Document, tag: K, attrs: Record<string, string> = {}): SVGElementTagNameMap[K] {
+	const el = doc.createElementNS(SVG_NS, tag);
 	for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
 	return el;
 }

@@ -157,9 +157,9 @@
 	border: 1px solid var(--background-modifier-border);
 }
 
-.vault-dashboard-status--hidden,
-.vault-dashboard-cancel--hidden {
-	display: none !important;
+.vault-dashboard-status.vault-dashboard-status--hidden,
+.vault-dashboard-cancel.vault-dashboard-cancel--hidden {
+	display: none;
 }
 
 .vault-dashboard-muted,
