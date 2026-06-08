@@ -1,90 +1,127 @@
-# Obsidian Sample Plugin
+# Vault Dashboard
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+English | [简体中文](README.zh-cn.md)
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+A beautiful, panoramic dashboard for [Obsidian](https://obsidian.md) that gives you a bird's-eye view of your vault's storage composition, file distribution, and health — helping you identify large files and orphan attachments at a glance.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22vault-dashboard%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)
 
-## First time developing plugins?
+## Features
 
-Quick starting guide for new plugin devs:
+### Storage Overview
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+- **Hero KPIs** — Total indexed size, file count, and folder count displayed as prominent headline metrics with a category breakdown progress bar.
+- **Category Breakdown** — Files are classified into Markdown, Images, Attachments, and Other, each with size totals and visual proportion bars.
+- **Disk Estimate (Desktop)** — Optional recursive disk scan that includes unindexed files (e.g., `.obsidian/` config) for a true folder-level size estimate.
 
-## Releasing new releases
+### Space Usage Analysis
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+- **Squarified Treemap** — Visualize your vault's storage as a hierarchical treemap where rectangle area represents file/folder size.
+- **Drill-down Navigation** — Click any folder to drill into it; breadcrumbs at the top let you jump back to any ancestor level.
+- **Smart Aggregation** — When a folder has more than 80 children, small items are merged into an "Others (N items)" block to prevent DOM explosion.
+- **Multiple Chart Modes** — Switch between Treemap, Sunburst, Donut, and Bar views.
+- **Type Filter** — Filter by file type (All, Markdown, Images, Attachments, Other) to focus on specific content.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+### Insight Panels
 
-## Adding your plugin to the community plugin list
+- **Growth Trend** — 12-month cumulative size trend of current files with delta metrics.
+- **Activity Heatmap** — Edit frequency over the last 13 weeks, plus today/this-week edit and create counts.
+- **Recent Activity** — Recently modified and created notes at a glance.
+- **Vault Health** — Health summary in the sidebar, including broken-link hints when applicable.
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+### Largest Files
 
-## How to use
+- Ranked list with configurable count (**10 / 20 / 50**), sort by size or modification time, category filter, and search.
+- Inline actions: **open in Obsidian**, **copy vault-relative path**, and **reveal in system file manager** (desktop only).
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+### Orphan Attachment Scanner
 
-## Manually installing the plugin
+- Detects files not referenced by any note using Obsidian's `resolvedLinks` metadata.
+- **Deep Scan** (optional) — Also parses each note's metadata links, embeds, and frontmatter links for more accurate detection.
+- **Body Link Scan** (optional) — Regex-based fallback that reads note content to catch inline Markdown links not captured by metadata. High performance cost; enable only when needed.
+- Real-time progress indicator with cancel support.
+- Each orphan result supports: copy path, reveal in file manager, open in Obsidian.
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+### Identity Badge
 
-## Improve code quality with eslint
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
+- A subtle vault identity card pinned to the bottom of the right sidebar, showing the vault name and optional custom text.
+- Dynamically tracks the sidebar width and stays above the status bar.
+- Fully customizable: toggle visibility, set custom label, pick accent color, adjust opacity.
+- Toggle via command palette: **Toggle vault identity badge**.
 
-## Funding URL
+### General
 
-You can include funding URLs where people who use your plugin can financially support it.
+- **Bilingual UI** — Automatically switches between Chinese and English based on Obsidian's language setting (`getLanguage()` API, requires Obsidian ≥ 1.8.7).
+- **Session Cache** — Scan results are cached in memory during the session. Use the Refresh button to re-scan.
+- **Dark / Light Theme** — All colors use Obsidian CSS variables (`--color-accent`, `--text-normal`, etc.) for seamless theme adaptation.
+- **Mobile Compatible** — Works on both desktop and mobile (`isDesktopOnly: false`). Desktop-only features (disk estimate, file manager reveal) are gracefully hidden on mobile.
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+## Installation
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+### From Community Plugins (Recommended)
+
+1. Open **Settings → Community plugins → Browse**.
+2. Search for **Vault Dashboard**.
+3. Click **Install**, then **Enable**.
+
+### Manual Installation
+
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/Lemon695/obsidian-vault-dashboard/releases).
+2. Create a folder: `<your-vault>/.obsidian/plugins/vault-dashboard/`
+3. Place all three files into that folder.
+4. Reload Obsidian, then enable **Vault Dashboard** in **Settings → Community plugins**.
+
+## Usage
+
+- Click the **pie-chart icon** in the left ribbon, or run **Open info panel** from the command palette.
+- A new tab opens with the full dashboard view.
+- Click **Refresh** in the header to re-scan your vault.
+- Click **Scan Orphans** in the sidebar to detect unreferenced attachments.
+- Click any folder in the space usage chart to drill down; use breadcrumbs to navigate back.
+- Switch chart modes and type filters in the analysis panel header.
+
+## Settings
+
+### Dashboard
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| Ignore path prefixes | One vault-relative prefix per line to exclude from indexed scans (e.g., `large-videos`) | (empty) |
+| Show disk folder total (desktop) | Enable recursive disk size estimation | Off |
+| Indexed scan yield interval | Yield to the main thread after this many indexed files (0–100; 0 = off) | 25 |
+| Orphan scan: deep Markdown metadata pass | Parse metadata links/embeds for more accurate orphan detection | On |
+| Orphan scan: deep body text fallback | Regex-based fallback scan of note content for link detection | Off |
+
+### Identity Badge
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| Show vault identity badge | Toggle the identity badge in the right sidebar | On |
+| Custom vault name | Additional label on the badge; empty uses the vault folder name | (empty) |
+| Badge theme color | Accent color for the badge border | Theme default |
+| Badge opacity | Badge transparency (0.1–1.0) | 0.8 |
+
+## Development
+
+```bash
+npm install
+npm run dev      # watch mode
+npm run build    # type check + production build
+npm run lint     # ESLint
 ```
 
-If you have multiple URLs, you can also do:
+Build output is written to `main.js` at the project root (not `dist/`).
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+### Manual Testing
+
+Copy `main.js`, `manifest.json`, and `styles.css` to:
+
+```
+<vault>/.obsidian/plugins/vault-dashboard/
 ```
 
-## API Documentation
+Reload Obsidian and enable the plugin.
 
-See https://docs.obsidian.md
+## License
+
+This project is licensed under [GPL-3.0-only](LICENSE).
